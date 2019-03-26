@@ -3,16 +3,16 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-<string-array name="books">
-    <item>Think Python</item>
-    <item>Calculus 1</item>
-    <item>Calculus 2</item>
-    <item>Calculus 3</item>
-    <item>Data Structure</item>
-    <item>Data Science</item>
-    <item>GRE</item>
-    <item>Book</item>
-    <item>New book</item>
-</string-array>
+    <string-array name="books">
+        <item>Think Python</item>
+        <item>Calculus 1</item>
+        <item>Calculus 2</item>
+        <item>Calculus 3</item>
+        <item>Data Structure</item>
+        <item>Data Science</item>
+        <item>GRE</item>
+        <item>Book</item>
+        <item>New book</item>
+    </string-array>
 
 </resources>
