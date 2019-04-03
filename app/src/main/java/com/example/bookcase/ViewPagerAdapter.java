@@ -1,6 +1,4 @@
 package com.example.bookcase;
-
-
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -12,14 +10,13 @@ import java.util.ArrayList;
 
 public class ViewPagerAdapter extends FragmentPagerAdapter {
 
-    private Context context;
+
     private ArrayList<Book> bookList;
 
-    BookDetailsFragment bookDetailsFragment;
+    //BookDetailsFragment bookDetailsFragment;
 
-    public ViewPagerAdapter(FragmentManager fm, Context context, ArrayList<Book> bookList) {
+    public ViewPagerAdapter(FragmentManager fm, ArrayList<Book> bookList) {
         super(fm);
-        this.context = context;
         this.bookList = bookList;
     }
 
@@ -29,9 +26,8 @@ public class ViewPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int i) {
-        bookDetailsFragment = new BookDetailsFragment();
-        bookDetailsFragment.setBook(bookList.get(i));
-        return bookDetailsFragment;
+        return BookDetailsFragment.newInstance(bookList.get(i));
+
     }
 
     @Override
