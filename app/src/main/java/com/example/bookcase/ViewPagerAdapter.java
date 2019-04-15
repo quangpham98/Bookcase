@@ -13,7 +13,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     private ArrayList<Book> bookList;
 
-    //BookDetailsFragment bookDetailsFragment;
+    //BookDetailsFragment bookDetailsFragment
 
     public ViewPagerAdapter(FragmentManager fm, ArrayList<Book> bookList) {
         super(fm);
