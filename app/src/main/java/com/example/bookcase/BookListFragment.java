@@ -57,6 +57,6 @@ public class BookListFragment extends Fragment {
     }
 
     public interface getBook {
-        void bookSelected(Book book);
+        void bookSelected(Book book);#
     }
 }
