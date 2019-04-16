@@ -4,8 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +26,7 @@ public class BookDetailsFragment extends Fragment {
 
     //Name of book
     private Book book;
+    SeekBar progressBar;
 
     AudiobookService audiobookService;
     boolean audioBound = false;
@@ -59,13 +63,15 @@ public class BookDetailsFragment extends Fragment {
         ImageView bookCover = v.findViewById(R.id.bookCover);
         TextView bookAuthor = v.findViewById(R.id.bookAuthor);
         TextView bookPublishDate = v.findViewById(R.id.bookPublishDate);
-        final SeekBar progressBar = v.findViewById(R.id.progressBar);
+        progressBar = v.findViewById(R.id.progressBar);
         Button pauseButton = v.findViewById(R.id.pauseButton);
         final Button playButton = v.findViewById(R.id.playButton);
         Button stopButton = v.findViewById(R.id.stopButton);
-        progressBar.setMax(book.getDuration());
-        if (book != null) {
 
+        progressBar.setMax(book.getDuration());
+        //((audioControl)getActivity()).setProgress();
+
+        if (book != null) {
             bookTitle.setText(book.getTitle());
             bookTitle.setTextSize(20);
             Picasso.get().load(book.getCoverURL()).into(bookCover);
@@ -76,6 +82,7 @@ public class BookDetailsFragment extends Fragment {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ((audioControl) getActivity()).stopAudio();
                 ((audioControl) getActivity()).playAudio(book.getId());
             }
         });
@@ -92,10 +99,15 @@ public class BookDetailsFragment extends Fragment {
                 ((audioControl) getActivity()).stopAudio();
             }
         });
+
+
         progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                ((audioControl) getActivity()).seekToAudio(progress);
+                if (fromUser) {
+                    ((audioControl) getActivity()).seekToAudio(progress);
+                    Log.d("progress", Integer.toString(progress));
+                }
             }
 
             @Override
@@ -108,6 +120,11 @@ public class BookDetailsFragment extends Fragment {
         });
 
         return v;
+
+    }
+
+    public SeekBar getProgressBar() {
+        return progressBar;
     }
 
     public interface audioControl {
@@ -118,6 +135,6 @@ public class BookDetailsFragment extends Fragment {
         void stopAudio();
 
         void seekToAudio(int position);
+
     }
-}
 }
