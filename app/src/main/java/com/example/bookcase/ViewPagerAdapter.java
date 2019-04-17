@@ -1,38 +1,40 @@
 package com.example.bookcase;
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
 
-    private ArrayList<Book> bookList;
+    public ArrayList<BookDetailsFragment> bookDetailsFragmentsList;
 
-    //BookDetailsFragment bookDetailsFragment
-
-    public ViewPagerAdapter(FragmentManager fm, ArrayList<Book> bookList) {
+    public ViewPagerAdapter(FragmentManager fm, ArrayList<BookDetailsFragment> bookDetailsFragments) {
         super(fm);
-        this.bookList = bookList;
+        this.bookDetailsFragmentsList = bookDetailsFragments;
     }
 
-    public void setBookList(ArrayList<Book> bookList) {
-        this.bookList = bookList;
+    public void addBooks(ArrayList<Book> books) {
+        bookDetailsFragmentsList = new ArrayList<>(); // Empty the array list containing the collection of fragments
+        for (Book book : books) {
+            bookDetailsFragmentsList.add(BookDetailsFragment.newInstance(book));
+            Log.d("New Books", book.getTitle()); // Populate
+        }
+        notifyDataSetChanged(); // FragmentStatePagetAdapter object.
     }
-
     @Override
     public Fragment getItem(int i) {
-        return BookDetailsFragment.newInstance(bookList.get(i));
+        return bookDetailsFragmentsList.get(i);
 
     }
 
     @Override
     public int getCount() {
-        return bookList.size();
+        return bookDetailsFragmentsList.size();
     }
 
     @Override
