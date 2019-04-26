@@ -1,11 +1,10 @@
 package com.example.bookcase;
-
+import android.app.DownloadManager;
 import android.content.Context;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -16,20 +15,24 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-import edu.temple.audiobookplayer.AudiobookService;
+import java.io.File;
 
 
 public class BookDetailsFragment extends Fragment {
 
     //Name of book
     private Book book;
-    SeekBar progressBar;
+    private SeekBar progressBar;
+    Button download;
+    Button delete;
+    String baseDownloadURL = "https://kamorris.com/lab/audlib/download.php?id=";
+    SharedPreferences bookDetailPref;
 
-    AudiobookService audiobookService;
-    boolean audioBound = false;
+    SharedPreferences.Editor editor;
 
     public BookDetailsFragment() {
         // Required empty public constructor
@@ -58,18 +61,22 @@ public class BookDetailsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_book_details, container, false);
-
+        bookDetailPref = this.getActivity().getSharedPreferences("" + book.getTitle() + " orient", Context.MODE_PRIVATE);
+        editor = bookDetailPref.edit();
+        Log.d("pref", bookDetailPref.toString());
         TextView bookTitle = v.findViewById(R.id.bookTitle);
         ImageView bookCover = v.findViewById(R.id.bookCover);
         TextView bookAuthor = v.findViewById(R.id.bookAuthor);
         TextView bookPublishDate = v.findViewById(R.id.bookPublishDate);
         progressBar = v.findViewById(R.id.progressBar);
+        progressBar.setMax(book.getDuration());
+
+
         Button pauseButton = v.findViewById(R.id.pauseButton);
         final Button playButton = v.findViewById(R.id.playButton);
-        Button stopButton = v.findViewById(R.id.stopButton);
+        final Button stopButton = v.findViewById(R.id.stopButton);
 
-        progressBar.setMax(book.getDuration());
-        //((audioControl)getActivity()).setProgress();
+
 
         if (book != null) {
             bookTitle.setText(book.getTitle());
@@ -82,8 +89,21 @@ public class BookDetailsFragment extends Fragment {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((audioControl) getActivity()).stopAudio();
-                ((audioControl) getActivity()).playAudio(book.getId());
+                Thread t = new Thread() {
+                    @Override
+                    public void run() {
+                        Log.d("pref check", String.valueOf(bookDetailPref.getInt("Progress Bar", 0)));
+                        File audio = new File(Environment.DIRECTORY_DOWNLOADS, book.getTitle() + ".mp3").getAbsoluteFile();
+                        if (!audio.exists()) {
+                            ((audioControl) getActivity()).playAudio(book.getId(), progressBar.getProgress());
+                            Log.d("prog", String.valueOf(progressBar.getProgress()));
+                        } else {
+                            ((audioControl) getActivity()).playAudio(audio, progressBar.getProgress());
+                        }
+                    }
+                };
+                t.start();
+
             }
         });
         pauseButton.setOnClickListener(new View.OnClickListener() {
@@ -97,6 +117,9 @@ public class BookDetailsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 ((audioControl) getActivity()).stopAudio();
+                editor.putInt("Progress Bar", 0);
+                editor.apply();
+                progressBar.setProgress(0);
             }
         });
 
@@ -119,8 +142,57 @@ public class BookDetailsFragment extends Fragment {
             }
         });
 
+        download = v.findViewById(R.id.download);
+        download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                File check = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), book.getTitle() + ".mp3");
+
+                Log.d("check", check.getAbsolutePath());
+                Log.d("exists", String.valueOf(check.exists()));
+
+                if (!check.exists()) {
+
+                    DownloadManager downloadmanager = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
+                    Uri uri = Uri.parse(baseDownloadURL + book.getId());
+                    DownloadManager.Request request = new DownloadManager.Request(uri);
+                    request.setDescription("Downloading");
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalFilesDir(getContext(), Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath(), book.getTitle() + ".mp3");
+                    downloadmanager.enqueue(request);
+                } else {
+                    Toast.makeText(getContext(), "Already have", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        delete = v.findViewById(R.id.delete);
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File check = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), book.getTitle() + ".mp3");
+                Log.d("check", check.getAbsolutePath());
+                if (check.exists()) {
+                    check.delete();
+                    Toast.makeText(getContext(), "Deleted", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         return v;
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        progressBar.setProgress(bookDetailPref.getInt("Progress Bar", 0));
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 
     public SeekBar getProgressBar() {
@@ -128,13 +200,21 @@ public class BookDetailsFragment extends Fragment {
     }
 
     public interface audioControl {
+
         void pauseAudio();
 
-        void playAudio(int bookId);
+        void playAudio(int bookId, int position);
+
+        void playAudio(File audioFile, int position);
 
         void stopAudio();
 
         void seekToAudio(int position);
 
+
+    }
+
+    public SharedPreferences.Editor getEditor() {
+        return editor;
     }
 }

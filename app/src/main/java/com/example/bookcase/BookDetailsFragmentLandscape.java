@@ -1,9 +1,10 @@
 package com.example.bookcase;
 
-
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +19,8 @@ import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
+
 public class BookDetailsFragmentLandscape extends Fragment {
 
 
@@ -25,6 +28,9 @@ public class BookDetailsFragmentLandscape extends Fragment {
     ImageView bookCoverLandscape;
     TextView bookAuthorLandscape;
     TextView bookPublishDateLandscape;
+    private SharedPreferences bookDetailLandPref;
+
+    private SharedPreferences.Editor editor;
 
     Book book;
     SeekBar seekBar;
@@ -37,7 +43,8 @@ public class BookDetailsFragmentLandscape extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_book_details_fragment_landscape2, container, false);
+        View v = inflater.inflate(R.layout.fragment_book_details_fragment_landscape, container, false);
+
         bookTitleLandscape = v.findViewById(R.id.bookTitleLandscape);
         bookCoverLandscape = v.findViewById(R.id.bookCoverLandscape);
         bookAuthorLandscape = v.findViewById(R.id.bookAuthorLandscape);
@@ -58,8 +65,18 @@ public class BookDetailsFragmentLandscape extends Fragment {
         playLandscape.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((audioControlLandscape) getActivity()).stopAudioLandscape();
-                ((audioControlLandscape) getActivity()).playAudioLandscape(book.getId());
+                Thread t = new Thread() {
+                    @Override
+                    public void run() {
+                        File audio = new File(Environment.DIRECTORY_DOWNLOADS, book.getTitle() + ".mp3").getAbsoluteFile();
+                        if (!audio.exists()) {
+                            ((BookDetailsFragmentLandscape.audioControlLandscape) getActivity()).playAudioLandscape(book.getId(), seekBar.getProgress());
+                        } else {
+                            ((BookDetailsFragmentLandscape.audioControlLandscape) getActivity()).playAudioLandscape(audio, seekBar.getProgress());
+                        }
+                    }
+                };
+                t.start();
             }
         });
 
@@ -67,6 +84,9 @@ public class BookDetailsFragmentLandscape extends Fragment {
             @Override
             public void onClick(View v) {
                 ((audioControlLandscape) getActivity()).stopAudioLandscape();
+                editor.putInt("Progress Bar Land", 0);
+                editor.apply();
+                seekBar.setProgress(0);
             }
         });
 
@@ -93,12 +113,26 @@ public class BookDetailsFragmentLandscape extends Fragment {
         return v;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (book != null) {
+            seekBar.setProgress(bookDetailLandPref.getInt("Progress Bar Land", 0) - 10);
+        }
+    }
+
     public void setBook(Book book) {
         this.book = book;
+        if (book != null) {
+            bookDetailLandPref = this.getActivity().getSharedPreferences("" + book.getTitle() + " land", Context.MODE_PRIVATE);
+            editor = bookDetailLandPref.edit();
+        }
         seekBar.setProgress(0);
         seekBar = getView().findViewById(R.id.seekBarLandscape);
         seekBar.setMax(book.getDuration());
+        seekBar.setProgress(bookDetailLandPref.getInt("Progress Bar Land", 0));
     }
+
 
     public void displayBookName(Book book) {
         bookTitleLandscape.setText(book.getTitle());
@@ -112,13 +146,22 @@ public class BookDetailsFragmentLandscape extends Fragment {
     }
 
     public interface audioControlLandscape {
+
         void pauseAudioLandscape();
 
-        void playAudioLandscape(int bookId);
+        void playAudioLandscape(int bookId, int position);
 
         void stopAudioLandscape();
 
+        void playAudioLandscape(File audioFile, int timeMark);
+
         void seekToAudioLandscape(int position);
 
+
     }
+
+    public SharedPreferences.Editor getEditor() {
+        return editor;
+    }
+}
 }
