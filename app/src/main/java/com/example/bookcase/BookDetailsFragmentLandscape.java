@@ -43,7 +43,7 @@ public class BookDetailsFragmentLandscape extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_book_details_fragment_landscape, container, false);
+        View v = inflater.inflate(R.layout.fragment_book_details_fragment_landscape2, container, false);
 
         bookTitleLandscape = v.findViewById(R.id.bookTitleLandscape);
         bookCoverLandscape = v.findViewById(R.id.bookCoverLandscape);
@@ -163,5 +163,4 @@ public class BookDetailsFragmentLandscape extends Fragment {
     public SharedPreferences.Editor getEditor() {
         return editor;
     }
-}
 }
