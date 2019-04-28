@@ -1,8 +1,5 @@
 package com.example.bookcase;
 
-
-
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
