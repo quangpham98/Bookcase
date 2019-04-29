@@ -53,9 +53,7 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
         setContentView(R.layout.activity_main);
         SharedPreferences pref = getSharedPreferences("MainActivityPref", MODE_PRIVATE);
         final SharedPreferences.Editor editor = pref.edit();
-
         isTwoPane = findViewById(R.id.bookListLandscape) != null;
-
         if (isTwoPane) {
 
             //Landscape mode
@@ -132,8 +130,6 @@ public class MainActivity extends AppCompatActivity implements BookListFragment.
                     return false;
                 }
             });
-
-
 
         } else {
             //Portrait mode
